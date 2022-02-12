@@ -1,19 +1,74 @@
-// const fs = require('fs/promises')
+const fs = require("fs/promises");
 
-const listContacts = async () => {}
+const path = require("path");
 
-const getContactById = async (contactId) => {}
+const { v4 } = require("uuid");
 
-const removeContact = async (contactId) => {}
+const contactsPath = path.join(__dirname, "contacts.json");
 
-const addContact = async (body) => {}
+const updateContacts = async (contacts) => {
+  await fs.writeFile(contactsPath, JSON.stringify(contacts, null, 2));
+};
 
-const updateContact = async (contactId, body) => {}
+const updateContactById = async (contactId, body) => {
+  const contactsArray = await listContacts();
+  const idx = contactsArray.findIndex((contact) => contact.id === contactId);
+  if (idx === -1) {
+    return null;
+  }
+  contactsArray[idx] = { ...body, contactId };
+  await updateContacts(contactsArray);
+  return contactsArray[idx];
+};
 
-module.exports = {
+const listContacts = async () => {
+  const data = await fs.readFile(contactsPath);
+  const contactsArray = JSON.parse(data);
+  return contactsArray;
+};
+
+const getContactById = async (contactId) => {
+  const contactsArray = await listContacts();
+  const contact = contactsArray.find((contact) => contact.id === contactId);
+  if (!contact) {
+    return null;
+  }
+  return contact;
+};
+
+const removeContact = async (contactId) => {
+  const contactsArray = await listContacts();
+  const removedById = contactsArray.find((contact) => contact.id === contactId);
+  if (!removedById) {
+    return null;
+  }
+  const contactsAfterRemoval = contactsArray.filter(
+    (contact) => contact.id !== contactId
+  );
+  await updateContacts(contactsAfterRemoval);
+
+  return removedById;
+};
+
+const addContact = async (name, email, phone) => {
+  const contactsArray = await listContacts();
+  const newContact = {
+    id: v4(),
+    name,
+    email,
+    phone,
+  };
+  contactsArray.push(newContact);
+  await updateContacts(contactsArray);
+  return newContact;
+};
+
+const contacts = {
   listContacts,
+  updateContactById,
   getContactById,
   removeContact,
   addContact,
-  updateContact,
-}
+};
+
+module.exports = contacts;
