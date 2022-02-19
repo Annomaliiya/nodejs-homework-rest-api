@@ -6,4 +6,8 @@ const contactSchema = Joi.object({
   phone: Joi.string().pattern(/^[\d,\(,\),\-,\s]+$/),
 });
 
-module.exports = contactSchema;
+const updateContactSchema = Joi.object({
+  favorite: Joi.boolean().required(),
+});
+
+module.exports = { contactSchema, updateContactSchema };
